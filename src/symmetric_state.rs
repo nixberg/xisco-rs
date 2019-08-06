@@ -1,17 +1,17 @@
-use xoodyak::Xoodyak;
 use subtle::ConstantTimeEq;
+use xoodyak::Xoodyak;
 
 pub struct SymmetricState {
     pub(crate) xoodyak: Xoodyak,
-    is_keyed: bool
+    is_keyed: bool,
 }
 
 impl SymmetricState {
     pub fn new(id: &[u8]) -> SymmetricState {
         SymmetricState {
             xoodyak: Xoodyak::keyed(&[], id, &[]),
-            is_keyed: false
-        } 
+            is_keyed: false,
+        }
     }
 
     pub fn mix_key(&mut self, key: &[u8]) {

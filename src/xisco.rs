@@ -1,16 +1,16 @@
-use xoodyak::Xoodyak;
 use subtle::ConstantTimeEq;
+use xoodyak::Xoodyak;
 
 pub enum Role {
     Initiator,
-    Responder
+    Responder,
 }
 
 impl Role {
     fn value(&self) -> u8 {
         match self {
             Role::Initiator => 0x00,
-            Role::Responder => 0xff
+            Role::Responder => 0xff,
         }
     }
 }
@@ -20,8 +20,7 @@ pub struct Xisco {
     sender: Xoodyak,
     sender_nonce: u64,
     receiver: Xoodyak,
-    receiver_nonce: u64
-
+    receiver_nonce: u64,
 }
 
 impl Xisco {
@@ -35,7 +34,7 @@ impl Xisco {
             sender: Xoodyak::keyed(key, &[role.value()], &[]),
             sender_nonce: 0,
             receiver: Xoodyak::keyed(key, &[!role.value()], &[]),
-            receiver_nonce: 0
+            receiver_nonce: 0,
         }
     }
 
@@ -55,7 +54,7 @@ impl Xisco {
         ephemeral.squeeze_to(tag);
     }
 
-    pub fn decrypt(&mut self, ciphertext: &[u8], ad: &[u8], plaintext: &mut [u8]) -> bool{
+    pub fn decrypt(&mut self, ciphertext: &[u8], ad: &[u8], plaintext: &mut [u8]) -> bool {
         assert!(!self.aborted);
         assert!(plaintext.len() + Xisco::TAG_LENGTH == ciphertext.len());
         assert!(ciphertext.len() + ad.len() <= Xisco::MAX_MESSAGE_LENGTH);
@@ -80,7 +79,7 @@ impl Xisco {
             self.aborted = true;
             return false;
         }
-    }  
+    }
 }
 
 trait Bytes {
@@ -97,15 +96,15 @@ impl Bytes for u64 {
             (le >> 32 & 0xff) as u8,
             (le >> 24 & 0xff) as u8,
             (le >> 16 & 0xff) as u8,
-            (le >>  8 & 0xff) as u8,
-            (le >>  0 & 0xff) as u8,
+            (le >> 8 & 0xff) as u8,
+            (le >> 0 & 0xff) as u8,
         ]
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Xisco, Role};
+    use super::{Role, Xisco};
 
     #[test]
     fn it_works() {
@@ -118,7 +117,6 @@ mod tests {
         let mut receiver = Xisco::new(&[], Role::Responder);
         let mut new_pt = vec![0; pt.len()];
         receiver.decrypt(&ct, &[], &mut new_pt);
-        
         assert_eq!(pt, new_pt);
     }
 }

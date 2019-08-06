@@ -1,21 +1,21 @@
-use rand_os::OsRng;
 use rand_os::rand_core::RngCore;
+use rand_os::OsRng;
 
 use curve25519_dalek::constants;
+use curve25519_dalek::ristretto::{CompressedRistretto, RistrettoPoint};
 use curve25519_dalek::scalar::Scalar;
-use curve25519_dalek::ristretto::{RistrettoPoint, CompressedRistretto};
 
 use crate::symmetric_state::SymmetricState;
-use crate::xisco::{Xisco, Role};
+use crate::xisco::{Role, Xisco};
 
 struct KeyPair {
     scalar: Scalar,
-    public_key: PublicKey
+    public_key: PublicKey,
 }
 
 struct PublicKey {
     point: RistrettoPoint,
-    bytes: [u8; 32]
+    bytes: [u8; 32],
 }
 
 impl KeyPair {
@@ -26,7 +26,7 @@ impl KeyPair {
         let point = &scalar * &constants::RISTRETTO_BASEPOINT_TABLE;
         KeyPair {
             scalar: scalar,
-            public_key: PublicKey::new(&point)
+            public_key: PublicKey::new(&point),
         }
     }
 
@@ -43,7 +43,7 @@ impl PublicKey {
     fn new(point: &RistrettoPoint) -> PublicKey {
         PublicKey {
             point: *point,
-            bytes: point.compress().to_bytes()
+            bytes: point.compress().to_bytes(),
         }
     }
 
@@ -52,16 +52,16 @@ impl PublicKey {
         match compressed.decompress() {
             Some(point) => Some(PublicKey {
                 point: point,
-                bytes: compressed.to_bytes()
+                bytes: compressed.to_bytes(),
             }),
-            None => None
+            None => None,
         }
     }
 }
 
 pub struct InitiatorNX {
     e: KeyPair,
-    symmetric_state: SymmetricState
+    symmetric_state: SymmetricState,
 }
 
 impl InitiatorNX {
@@ -69,7 +69,7 @@ impl InitiatorNX {
         let pattern = [0u8];
         InitiatorNX {
             e: KeyPair::new(),
-            symmetric_state: SymmetricState::new(&pattern)
+            symmetric_state: SymmetricState::new(&pattern),
         }
     }
 
@@ -88,7 +88,6 @@ impl InitiatorNX {
     }
 
     pub fn finalize(&mut self) -> Xisco {
-
         let mut key = vec![0u8; 32];
         self.symmetric_state.xoodyak.squeeze_to(&mut key);
         Xisco::new(&key, Role::Initiator)
@@ -99,7 +98,7 @@ pub struct ResponderNX {
     s: KeyPair,
     e: KeyPair,
     re: Option<PublicKey>,
-    symmetric_state: SymmetricState
+    symmetric_state: SymmetricState,
 }
 
 impl ResponderNX {
@@ -109,7 +108,7 @@ impl ResponderNX {
             e: KeyPair::new(),
             s: KeyPair::new(),
             re: None,
-            symmetric_state: SymmetricState::new(&pattern)
+            symmetric_state: SymmetricState::new(&pattern),
         }
     }
 
@@ -121,10 +120,13 @@ impl ResponderNX {
     pub fn write(&mut self, buffer: &mut [u8]) {
         buffer[..32].copy_from_slice(self.e.pk_bytes());
         self.symmetric_state.mix_hash_kp(&self.e);
-        self.symmetric_state.mix_key(&self.e.dh(self.re.as_ref().unwrap()));
+        self.symmetric_state
+            .mix_key(&self.e.dh(self.re.as_ref().unwrap()));
 
-        self.symmetric_state.encrypt_pk(&self.s, &mut buffer[32..80]);
-        self.symmetric_state.mix_key(&self.s.dh(self.re.as_ref().unwrap()));
+        self.symmetric_state
+            .encrypt_pk(&self.s, &mut buffer[32..80]);
+        self.symmetric_state
+            .mix_key(&self.s.dh(self.re.as_ref().unwrap()));
     }
 
     pub fn finalize(&mut self) -> Xisco {
