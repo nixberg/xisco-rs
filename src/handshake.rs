@@ -39,6 +39,10 @@ impl KeyPair {
     }
 }
 
+fn pattern(name: &str) -> Vec<u8> {
+    format!("Xisco-v{}_{}", Xisco::VERSION, name).into_bytes()
+}
+
 impl PublicKey {
     fn new(point: &RistrettoPoint) -> PublicKey {
         PublicKey {
@@ -66,10 +70,9 @@ pub struct InitiatorNX {
 
 impl InitiatorNX {
     pub fn new() -> InitiatorNX {
-        let pattern = [0u8];
         InitiatorNX {
             e: KeyPair::new(),
-            symmetric_state: SymmetricState::new(&pattern),
+            symmetric_state: SymmetricState::new(&pattern("NX")),
         }
     }
 
@@ -103,12 +106,11 @@ pub struct ResponderNX {
 
 impl ResponderNX {
     pub fn new() -> ResponderNX {
-        let pattern = [0u8];
         ResponderNX {
             e: KeyPair::new(),
             s: KeyPair::new(),
             re: None,
-            symmetric_state: SymmetricState::new(&pattern),
+            symmetric_state: SymmetricState::new(&pattern("NX")),
         }
     }
 
@@ -167,6 +169,12 @@ impl SymmetricStateHelpers for SymmetricState {
 mod tests {
     use super::{InitiatorNX, ResponderNX};
     use crate::xisco::Xisco;
+
+    #[test]
+    fn test_pattern() {
+        assert_eq!(Xisco::VERSION, 0);
+        assert_eq!(super::pattern("NX"), "Xisco-v0_NX".to_owned().into_bytes());
+    }
 
     #[test]
     fn nx() {
