@@ -1,6 +1,8 @@
 use subtle::ConstantTimeEq;
 use xoodyak::Xoodyak;
 
+use crate::xisco::Xisco;
+
 pub struct SymmetricState {
     pub(crate) xoodyak: Xoodyak,
     is_keyed: bool,
@@ -25,7 +27,7 @@ impl SymmetricState {
 
     pub fn encrypt(&mut self, plaintext: &[u8], ciphertext: &mut [u8]) {
         assert!(self.is_keyed);
-        assert!(ciphertext.len() == plaintext.len() + 16);
+        assert!(ciphertext.len() == plaintext.len() + Xisco::TAG_LENGTH);
         let (ct_only, tag) = ciphertext.split_at_mut(plaintext.len());
         self.xoodyak.encrypt(plaintext, ct_only);
         self.xoodyak.squeeze_to(tag);
@@ -33,10 +35,10 @@ impl SymmetricState {
 
     pub fn decrypt(&mut self, ciphertext: &[u8], plaintext: &mut [u8]) -> bool {
         assert!(self.is_keyed);
-        assert!(ciphertext.len() == plaintext.len() + 16);
+        assert!(ciphertext.len() == plaintext.len() + Xisco::TAG_LENGTH);
         let (ct_only, tag) = ciphertext.split_at(plaintext.len());
         self.xoodyak.decrypt(ct_only, plaintext);
-        let mut new_tag = [0u8; 16];
+        let mut new_tag = [0u8; Xisco::TAG_LENGTH];
         self.xoodyak.squeeze_to(&mut new_tag);
 
         assert_eq!(tag, &new_tag);
