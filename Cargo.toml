@@ -1,0 +1,11 @@
+[package]
+name = "xisco"
+version = "0.1.0"
+authors = ["nixberg <k.nixberg@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+xoodyak = { git = "https://github.com/nixberg/xoodyak-rs" }
+subtle = "2"
+curve25519-dalek = "1"
+rand_os = "0"
