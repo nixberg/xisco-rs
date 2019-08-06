@@ -2,4 +2,5 @@ mod handshake;
 mod symmetric_state;
 mod xisco;
 
-pub use handshake::*;
+pub use crate::handshake::*;
+pub use crate::xisco::Xisco;

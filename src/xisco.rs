@@ -1,7 +1,7 @@
 use subtle::ConstantTimeEq;
 use xoodyak::Xoodyak;
 
-pub enum Role {
+pub(crate) enum Role {
     Initiator,
     Responder,
 }
@@ -28,7 +28,7 @@ impl Xisco {
     pub const TAG_LENGTH: usize = 16;
     pub const MAX_MESSAGE_LENGTH: usize = 65535;
 
-    pub fn new(key: &[u8], role: Role) -> Xisco {
+    pub(crate) fn new(key: &[u8], role: Role) -> Xisco {
         Xisco {
             aborted: false,
             sender: Xoodyak::keyed(key, &[role.value()], &[]),
